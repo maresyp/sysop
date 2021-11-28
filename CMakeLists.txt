@@ -4,4 +4,4 @@ project(sysop)
 set(CMAKE_CXX_STANDARD 11)
 
 add_compile_options(-Werror -Wall -pedantic)
-add_executable(sysop main.cpp lab_1/creating_process.cpp)
+add_executable(sysop main.cpp lab_1/forking_process.cpp lab_1/cloning_process.cpp)
