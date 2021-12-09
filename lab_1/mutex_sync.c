@@ -4,6 +4,7 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -16,10 +17,9 @@ int main(int argc, char *argv[], char *envp[]) {
 
         pthread_mutex_t mutex;
         pthread_mutexattr_t attr_mutex;
-
+        // TODO: Add checking
         pthread_mutexattr_init(&attr_mutex);
         pthread_mutexattr_setpshared(&attr_mutex, PTHREAD_PROCESS_SHARED);
-
         pthread_mutex_init(&mutex, &attr_mutex);
 
         for (int i = 0; i < argc; ++i) {
@@ -29,7 +29,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 pthread_mutex_lock(&mutex);
                 printf("%d %s\n", i, argv[i]);
                 pthread_mutex_unlock(&mutex);
-                return 0;
+                exit(0);
             }
         }
 

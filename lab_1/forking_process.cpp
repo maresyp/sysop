@@ -4,9 +4,8 @@
 
 #include <iostream>
 #include <unistd.h> // for fork
-// use clone
 
-int main(int argc, char * argv[], char * envp[]) {
+int main(int argc, char *argv[], char *envp[]) {
     if (argc == 1) {
         std::cout << "Program wykonany bez argumentow" << std::endl;
     } else {
@@ -16,7 +15,9 @@ int main(int argc, char * argv[], char * envp[]) {
             if (pid == 0) {
                 // do child stuff
                 std::cout << argv[i] << " process pid -> " << pid << std::endl;
-                return 0;
+                exit(0);
+            } else if (pid == -1) {
+                std::cout << "forking failed ;(" << std::endl;
             }
         }
     }
