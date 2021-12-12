@@ -4,7 +4,7 @@
 #include "stdlib.h"
 
 void duplicate_me(void *arg) {
-
+    printf("%s", (char *) arg);
 }
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -24,9 +24,14 @@ int main(int argc, char *argv[], char *envp[]) {
             }
         } else {
             // use clone
+            const int STACK_SIZE = 65536;
+            char *stack = malloc(STACK_SIZE);
+            if (stack == NULL) {
+                printf("bad alloc");
+                exit(-1);
+            }
             for (int i = 2; i < argc; ++i) {
-                pid_t pid = clone(duplicate_me);
-                
+                pid_t pid = clone(duplicate_me, stack, CLONE_PARENT | SIGCHLD, argv[i]);
             }
         }
 
