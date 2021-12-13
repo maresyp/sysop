@@ -3,10 +3,14 @@
 //
 #include <iostream>
 #include <unistd.h>
+#include <sched.h>
+
 void prt() {
     fork();
+    clone();
     std::cout << "fork" << std::endl;
 }
+
 int main() {
     std::cout << "Hello before fork" << std::endl;
     prt();

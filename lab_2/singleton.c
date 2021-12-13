@@ -18,7 +18,8 @@ int main(int argc, char *argv[], char **envp) {
     if (flag) {
         printf("create new process and kill previous SO2=NEW");
     }
-
+    // /var/run/lock -> stworzyc plik
+    // use semaphore dla kilku procesów
     getchar();
     return 0;
 }
