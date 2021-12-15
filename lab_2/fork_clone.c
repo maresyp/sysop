@@ -10,7 +10,7 @@
 int duplicate_me(void *arg) {
     printf("Duplicate me is running");
     printf("clone arg -> %s", (char *) arg);
-    return 0;
+    exit(0);
 }
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -19,14 +19,15 @@ int main(int argc, char *argv[], char *envp[]) {
     } else {
         if (strcmp(argv[1], "c") == 0) {
             // use clone
-            const int STACK_SIZE = 65536;
+            const int STACK_SIZE = 1024 * 1024;
             void *stack = malloc(STACK_SIZE);
             if (stack == NULL) {
                 printf("bad alloc");
                 exit(-1);
             }
+            pid_t wait_pid;
             for (int i = 2; i < argc; ++i) {
-                pid_t pid = clone(duplicate_me, stack + STACK_SIZE, SIGCHLD, argv[i]);
+                pid_t pid = clone(&duplicate_me, stack + STACK_SIZE, CLONE_VM, argv[i]);
                 if (pid == -1) {
                     printf("Failed to clone");
                     exit(EXIT_FAILURE);
