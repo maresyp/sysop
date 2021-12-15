@@ -25,7 +25,6 @@ int main(int argc, char *argv[], char *envp[]) {
                 printf("bad alloc");
                 exit(-1);
             }
-            pid_t wait_pid;
             for (int i = 2; i < argc; ++i) {
                 pid_t pid = clone(&duplicate_me, stack + STACK_SIZE, CLONE_VM, argv[i]);
                 if (pid == -1) {
@@ -34,6 +33,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 }
                 printf("New process using clone created with pid = %d\n", pid);
             }
+            while (wait(NULL) > 0);
             free(stack);
         } else {
             // use fork
