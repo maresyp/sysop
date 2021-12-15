@@ -25,8 +25,8 @@ int main(int argc, char *argv[], char *envp[]) {
                 printf("bad alloc");
                 exit(-1);
             }
-            for (int i = 2; i < argc; ++i) {
-                pid_t pid = clone(&duplicate_me, stack + STACK_SIZE, CLONE_VM, argv[i]);
+            for (int i = 1; i < argc; ++i) {
+                pid_t pid = clone(duplicate_me, stack + STACK_SIZE, CLONE_VM, argv[i]);
                 if (pid == -1) {
                     printf("Failed to clone");
                     exit(EXIT_FAILURE);
