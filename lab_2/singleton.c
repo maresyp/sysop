@@ -11,10 +11,10 @@
 int main(int argc, char *argv[], char *envp[]) {
 
     int pid_file = open("/var/run/my_singleton.pid", O_CREAT | O_RDWR, S_IRWXU);
+    printf("pid file %d\n", pid_file);
     int lock = flock(pid_file, LOCK_EX | LOCK_NB);
     printf("lock -> %d\n", lock);
     if (lock == -1) {
-        printf("Error %d", errno);
         if (errno == EWOULDBLOCK) {
             printf("Another process is running\n");
 
