@@ -47,6 +47,7 @@ int main(int argc, char *argv[], char *envp[]) {
             }
         }
     }
+    flock(pid_file, LOCK_EX | LOCK_NB);
     FILE *file = fopen(LOCK_PATH, "w");
     if (file == NULL) {
         printf("Failed to open lock file");
