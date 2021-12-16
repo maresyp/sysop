@@ -7,6 +7,7 @@
 #include <sys/file.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define LOCK_PATH "/var/run/lock/my_singleton.pid"
 
@@ -28,6 +29,16 @@ int main(int argc, char *argv[], char *envp[]) {
 
             if (env_flag) {
                 printf("kill previous process SO2=NEW\n");
+                FILE *file = fopen(LOCK_PATH, "w");
+                if (file == NULL) {
+                    printf("Failed to open lock file");
+                    exit(EXIT_FAILURE);
+                } else {
+                    int pid;
+                    fscanf(LOCK_PATH, "%d", &pid);
+                    kill(pid, SIGKILL);
+                    fclose(file);
+                }
             } else {
                 printf("Exiting\n");
                 exit(EXIT_FAILURE);
