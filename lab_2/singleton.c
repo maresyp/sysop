@@ -16,7 +16,6 @@ int main(int argc, char *argv[], char *envp[]) {
     int pid_file = open(LOCK_PATH, O_CREAT | O_RDWR, S_IRWXU);
     int lock = flock(pid_file, LOCK_EX | LOCK_NB);
     if (lock == -1) {
-        printf("%d", errno);
         printf("Failed to acquire lock.\n");
 
         // check if env flag is set
@@ -31,7 +30,7 @@ int main(int argc, char *argv[], char *envp[]) {
             printf("kill previous process SO2=NEW\n");
             FILE *file = fopen(LOCK_PATH, "r");
             if (file == NULL) {
-                printf("Failed to open lock file");
+                printf("Failed to open lock file\n");
                 exit(EXIT_FAILURE);
             } else {
                 int pid;
@@ -49,13 +48,13 @@ int main(int argc, char *argv[], char *envp[]) {
     while (flock(pid_file, LOCK_EX | LOCK_NB) != 0);
     FILE *file = fopen(LOCK_PATH, "w");
     if (file == NULL) {
-        printf("Failed to open lock file");
+        printf("Failed to open lock file\n");
         exit(EXIT_FAILURE);
     }
     fprintf(file, "%d", getpid());
     fclose(file);
 
-    printf("Process running with pid: %d", getpid());
+    printf("Process running with pid: %d\n", getpid());
     getchar();
 
     return 0;
