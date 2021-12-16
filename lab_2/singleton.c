@@ -12,7 +12,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
     int pid_file = open("/var/run/my_singleton.pid", O_CREAT | O_RDWR, S_IRWXU);
     int lock = flock(pid_file, LOCK_EX | LOCK_NB);
-    if (lock == -1) {
+    if (lock) {
         if (errno == EWOULDBLOCK) {
             printf("Another process is running\n");
 
@@ -32,13 +32,6 @@ int main(int argc, char *argv[], char *envp[]) {
             }
         }
     }
-
-
-    // check file lock
-
-
-
-    // /var/run/lock -> stworzyc plik
 
     printf("Process running with pid: %d", getpid());
     getchar();
