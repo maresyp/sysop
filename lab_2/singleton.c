@@ -8,12 +8,12 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#define LOCK_PATH "/var/run/lock/my_singleton.pid"
+
 int main(int argc, char *argv[], char *envp[]) {
 
-    int pid_file = open("/var/run/lock/my_singleton.pid", O_CREAT | O_RDWR, S_IRWXU);
-    printf("pid file %d\n", errno);
+    int pid_file = open(LOCK_PATH, O_CREAT | O_RDWR, S_IRWXU);
     int lock = flock(pid_file, LOCK_EX | LOCK_NB);
-    printf("lock -> %d\n", lock);
     if (lock == -1) {
         if (errno == EWOULDBLOCK) {
             printf("Another process is running\n");
@@ -27,13 +27,20 @@ int main(int argc, char *argv[], char *envp[]) {
             }
 
             if (env_flag) {
-                printf("kill previous process SO2=NEW");
+                printf("kill previous process SO2=NEW\n");
             } else {
-                printf("Exiting");
+                printf("Exiting\n");
                 exit(EXIT_FAILURE);
             }
         }
     }
+    FILE *file = fopen(LOCK_PATH, "w");
+    if (file == NULL) {
+        printf("Failed to open lock file");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(file, "%d", getpid());
+    fclose(file);
 
     printf("Process running with pid: %d", getpid());
     getchar();
