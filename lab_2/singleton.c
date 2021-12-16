@@ -38,6 +38,10 @@ int main(int argc, char *argv[], char *envp[]) {
                     fscanf(file, "%d", &pid);
                     printf("Killing process with pid = %d\n", pid);
                     kill(pid, SIGKILL);
+
+                    // lock again
+                    int rlock = flock(pid_file, LOCK_EX | LOCK_NB);
+                    if (rlock == -1) { exit(EXIT_FAILURE); }
                     fclose(file);
                 }
             } else {
