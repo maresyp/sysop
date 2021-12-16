@@ -37,7 +37,7 @@ int main(int argc, char *argv[], char *envp[]) {
                     int pid;
                     fscanf(file, "%d", &pid);
                     printf("Killing process with pid = %d", pid);
-                    kill(pid, SIGKILL);
+                    //kill(pid, SIGKILL);
                     fclose(file);
                 }
             } else {
