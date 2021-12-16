@@ -29,7 +29,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
             if (env_flag) {
                 printf("kill previous process SO2=NEW\n");
-                FILE *file = fopen(LOCK_PATH, "w");
+                FILE *file = fopen(LOCK_PATH, "r");
                 if (file == NULL) {
                     printf("Failed to open lock file");
                     exit(EXIT_FAILURE);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[], char *envp[]) {
                     int pid;
                     fscanf(file, "%d", &pid);
                     printf("Killing process with pid = %d", pid);
-                    //kill(pid, SIGKILL);
+                    kill(pid, SIGKILL);
                     fclose(file);
                 }
             } else {
