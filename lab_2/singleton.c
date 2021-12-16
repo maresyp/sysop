@@ -14,7 +14,7 @@
 int main(int argc, char *argv[], char *envp[]) {
 
     int pid_file = open(LOCK_PATH, O_CREAT | O_RDWR, S_IRWXU);
-    int lock = flock(pid_file, LOCK_EX | LOCK_NB);
+    int lock = flock(pid_file, LOCK_SH | LOCK_NB);
     if (lock == -1) {
         if (errno == EWOULDBLOCK) {
             printf("Another process is running\n");
@@ -36,7 +36,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 } else {
                     int pid;
                     fscanf(file, "%d", &pid);
-                    printf("Killing process with pid = %d", pid);
+                    printf("Killing process with pid = %d\n", pid);
                     kill(pid, SIGKILL);
                     fclose(file);
                 }
