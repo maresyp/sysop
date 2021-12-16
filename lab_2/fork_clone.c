@@ -24,17 +24,15 @@ int main(int argc, char *argv[], char *envp[]) {
                 printf("bad alloc");
                 exit(-1);
             }
-            pid_t pid;
             for (int i = 1; i < argc; ++i) {
                 // CLONE_VFORK will wait here for child_process to finish its job
-                pid = clone(duplicate_me, stack + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
+                pid_t pid = clone(duplicate_me, stack + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
                 if (pid == -1) {
                     printf("Failed to clone");
                     exit(EXIT_FAILURE);
                 }
                 printf("New process using clone created with pid = %d\n", pid);
             }
-            while (wait(NULL) > 0);
             free(stack);
         } else {
             // use fork
