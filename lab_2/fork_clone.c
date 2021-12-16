@@ -13,6 +13,12 @@ int duplicate_me(void *arg) {
 }
 
 int main(int argc, char *argv[], char *envp[]) {
+
+    // print environment variables
+    for (char **env = envp; *env != NULL; env++) {
+        printf("%s \n", *env);
+    }
+
     if (argc == 1) {
         printf("Program wykonany bez argumentow");
     } else {
