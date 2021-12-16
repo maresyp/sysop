@@ -35,7 +35,7 @@ int main(int argc, char *argv[], char *envp[]) {
                     exit(EXIT_FAILURE);
                 } else {
                     int pid;
-                    fscanf(LOCK_PATH, "%d", &pid);
+                    fscanf(file, "%d", &pid);
                     kill(pid, SIGKILL);
                     fclose(file);
                 }
@@ -55,6 +55,6 @@ int main(int argc, char *argv[], char *envp[]) {
 
     printf("Process running with pid: %d", getpid());
     getchar();
-    
+
     return 0;
 }
