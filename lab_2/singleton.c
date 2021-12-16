@@ -3,26 +3,44 @@
 //
 #include <stdio.h>
 #include <string.h>
-#include <semaphore.h>
+#include <unistd.h>
+#include <sys/file.h>
+#include <errno.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[], char *envp[]) {
 
-    // create named semaphore
-    sem_open("/my_semaphore", 1);
+    int pid_file = open("/var/run/my_singleton.pid", O_CREAT | O_RDWR, S_IRWXU);
+    int lock = flock(pid_file, LOCK_EX | LOCK_NB);
+    if (lock == -1) {
+        if (errno == EWOULDBLOCK) {
+            printf("Another process is running\n");
 
-    int flag = 0;
-    for (char **env = envp; *env != 0; env++) {
-        const char *thisEnv = *env;
-        if (strcmp(thisEnv, "SO2=NEW") == 0) {
-            flag = 1;
+            // check if env flag is set
+            int env_flag = 0;
+            for (char **env = envp; *env != NULL; env++) {
+                if (strcmp(*env, "SO2=NEW") == 0) {
+                    env_flag = 1;
+                }
+            }
+
+            if (env_flag) {
+                printf("kill previous process SO2=NEW");
+            } else {
+                printf("Exiting");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
-    if (flag) {
-        printf("create new process and kill previous SO2=NEW");
-    }
+
+    // check file lock
+
+
+
     // /var/run/lock -> stworzyc plik
-    // use semaphore dla kilku procesów
+
+    printf("Process running with pid: %d", getpid());
     getchar();
     return 0;
 }
