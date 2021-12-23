@@ -24,6 +24,7 @@ int main(int argc, char *argv[], char *envp[]) {
     } else {
         if (strcmp(argv[1], "c") == 0) {
             // use clone
+            // TODO : alloc stack for every process
             const int STACK_SIZE = 1024 * 1024;
             void *stack = malloc(STACK_SIZE);
             if (stack == NULL) {
