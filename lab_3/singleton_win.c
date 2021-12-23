@@ -15,7 +15,17 @@ int main(int argc, char * argv[], char * envp[]) {
     }  
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         printf("Another process is running\n");
-        exit(EXIT_FAILURE);
+
+        // TODO : check for env variable 
+        char * env = getenv("SO2");
+        if (env != NULL && strcmp(env, "NEW") == 0) {
+            printf("Env -> %s", env);
+
+            // wait for previous process to terminate and grab mutex
+            WaitForSingleObject(mutex, INFINITE);    
+        } else { 
+            exit(EXIT_FAILURE);
+        }
     }
 
     // TODO: Write current pid to file
