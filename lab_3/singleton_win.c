@@ -16,10 +16,10 @@ int find_and_kill(long pid) {
                 pid
             );
             if (process_handle == NULL) { return -2; }
-            if (TerminateProcess(process_handle, 0) == 0) { return -3; }
+            if (TerminateProcess(process_handle, 0) == 0) { return -3; } else { return 0; }
         }
     }
-    return 0;
+    return -4;
 }
 
 int main(int argc, char * argv[], char * envp[]) {
