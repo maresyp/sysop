@@ -1,6 +1,26 @@
+// compile with -lpsapi
+
 #include <stdio.h>
 #include <windows.h>
+#include <psapi.h>
 
+int find_and_kill(long pid) {
+    DWORD processes[1024], needed, process;
+    if (!EnumProcesses(processes, sizeof(processes), &needed)) { return -1; }
+    process = needed / sizeof(DWORD); // calc how many found
+    for(int i=0; i < process; i++) {
+        if (processes[i] == pid) {
+            HANDLE process_handle = OpenProcess(
+                PROCESS_TERMINATE,
+                FALSE,
+                pid
+            );
+            if (process_handle == NULL) { return -2; }
+            if (TerminateProcess(process_handle, 0) == 0) { return -3; }
+        }
+    }
+    return 0;
+}
 
 int main(int argc, char * argv[], char * envp[]) {
 
@@ -57,12 +77,19 @@ int main(int argc, char * argv[], char * envp[]) {
                     printf("Failed to parse input");
                     exit(EXIT_FAILURE);
                 }
-                
-                CloseHandle(pid_file);          
-                printf("Killing process with pid=%d", pid);
+                CloseHandle(pid_file);   
 
+                printf("Killing process with pid=%d\n", pid);
+                int fak = find_and_kill(pid);
+                if (fak != 0) {
+                    printf("Failed to kill process with error=%d", GetLastError());
+                    exit(EXIT_FAILURE);
+                }
+                printf("Waiting...\n");
                 // wait for previous process to terminate and grab mutex
                 WaitForSingleObject(mutex, INFINITE);   
+            } else {
+                exit(EXIT_FAILURE);
             }
         } else { 
             exit(EXIT_FAILURE);
