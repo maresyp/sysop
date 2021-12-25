@@ -23,7 +23,43 @@ int main(int argc, char * argv[], char * envp[]) {
             if (strcmp(env, "NEW") == 0) {
                 printf("Terminating previous process ...\n");
 
-                // TODO : Read pid from fille and kill process
+                // Read pid from fille and kill process
+                HANDLE pid_file = CreateFile(
+                                    TEXT("pid_file.txt"),
+                                    GENERIC_READ,
+                                    0,             // open with exclusive access
+                                    NULL,          // no security attributes
+                                    OPEN_EXISTING, // opens a file or device, only if it exists. 
+                                    0,             // not overlapped index/O
+                                    NULL);
+
+                if (pid_file == INVALID_HANDLE_VALUE) {
+                    printf("Failed to open pid file, error=%d", GetLastError());
+                    exit(EXIT_FAILURE);
+                }
+                char txt[10];
+                DWORD bytes_read;
+                BOOL ret = ReadFile(
+                    pid_file,
+                    &txt,
+                    9,
+                    &bytes_read,
+                    NULL
+                );
+                if (ret == FALSE) {
+                    printf("Failed reading from file with error=%d", GetLastError());
+                    exit(EXIT_FAILURE);
+                }
+
+                // clean input
+                long pid = strtol(txt, NULL, 10);
+                if (pid == 0) {
+                    printf("Failed to parse input");
+                    exit(EXIT_FAILURE);
+                }
+                
+                CloseHandle(pid_file);          
+                printf("Killing process with pid=%d", pid);
 
                 // wait for previous process to terminate and grab mutex
                 WaitForSingleObject(mutex, INFINITE);   
@@ -33,10 +69,40 @@ int main(int argc, char * argv[], char * envp[]) {
         }
     }
 
-    printf("Created new process with pid=%d", GetCurrentProcessId());
+    printf("Created new process with pid=%d\n", GetCurrentProcessId());
     
-    // TODO: Write current pid to file
+    // Write current pid to file
+    HANDLE pid_file = CreateFile(
+                        TEXT("pid_file.txt"),
+                        GENERIC_WRITE,
+                        0,             // open with exclusive access
+                        NULL,          // no security attributes
+                        CREATE_ALWAYS, // creates a new file, always
+                        0,             // not overlapped index/O
+                        NULL);
 
+    if (pid_file == INVALID_HANDLE_VALUE) {
+        printf("Failed to create file error=%d", GetLastError());
+        exit(EXIT_FAILURE);
+    } 
+    
+    DWORD data = GetCurrentProcessId();
+    DWORD bytes_written;
+    char txt[10]; sprintf(txt, "%d", data);
+
+    BOOL ret = WriteFile(
+        pid_file,
+        txt,
+        strlen(txt),
+        &bytes_written,
+        NULL
+    );
+    if (ret == FALSE) {
+        printf("Failed writting to file with error=%d", GetLastError());
+        exit(EXIT_FAILURE);
+    }
+
+    CloseHandle(pid_file);
     getchar();
     CloseHandle(mutex);
     
