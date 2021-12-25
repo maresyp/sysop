@@ -4,6 +4,11 @@
 #include <windows.h>
 #include <psapi.h>
 
+// Error codes
+// -1 EnumProcesses error 
+// -2 Failed to create handle 
+// -3 Failed to TerminateProcess
+// -4 PID not found 
 int find_and_kill(long pid) {
     DWORD processes[1024], needed, process;
     if (!EnumProcesses(processes, sizeof(processes), &needed)) { return -1; }
