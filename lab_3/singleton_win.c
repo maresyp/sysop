@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <windows.h>
 #include <psapi.h>
+#include <string.h>
+#include <stdlib.h>
 
 // Error codes
 // -1 EnumProcesses error 
@@ -48,7 +50,7 @@ int main(int argc, char * argv[], char * envp[]) {
             if (strcmp(env, "NEW") == 0) {
                 printf("Terminating previous process ...\n");
 
-                // Read pid from fille and kill process
+                // Read pid from file and kill process
                 HANDLE pid_file = CreateFile(
                                     TEXT("pid_file.txt"),
                                     GENERIC_READ,
@@ -130,7 +132,7 @@ int main(int argc, char * argv[], char * envp[]) {
         NULL
     );
     if (ret == FALSE) {
-        printf("Failed writting to file with error=%d", GetLastError());
+        printf("Failed writing to file with error=%d", GetLastError());
         exit(EXIT_FAILURE);
     }
 
