@@ -2,10 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char * argv[], char * envp[]) {
     if (argc == 1) {
         printf("Program wykonany bez argumentow");
+        exit(EXIT_SUCCESS);
+    }
+    if (argc == 2) { 
+        printf("Process with pid=%d arg=%s\n", GetCurrentProcessId(), argv[1]);
         exit(EXIT_SUCCESS);
     }
     for(int i = 1; i < argc; i++) {
@@ -16,10 +21,21 @@ int main(int argc, char * argv[], char * envp[]) {
         ZeroMemory( &si, sizeof(si) );
         si.cb = sizeof(si);
         ZeroMemory( &pi, sizeof(pi) );
-        char command = "echo siema";
+
+        char * command = malloc(sizeof(argv[0]) + 1 + sizeof(argv[i]) + 1);
+        if (command == NULL) {
+            printf("Bad alloc");
+            exit(EXIT_FAILURE);
+        }
+        
+        command[0] = '\0';
+        strncat(command, argv[0], sizeof(argv[0]));
+        strncat(command, " ", 1);
+        strncat(command, argv[i], sizeof(argv[i]));
+
         if( !CreateProcess( 
             NULL,           // No module name (use command line)
-            &command,        // Command line
+            command,        // Command line
             NULL,           // Process handle not inheritable
             NULL,           // Thread handle not inheritable
             FALSE,          // Set handle inheritance to FALSE
@@ -28,11 +44,20 @@ int main(int argc, char * argv[], char * envp[]) {
             NULL,           // Use parent's starting directory 
             &si,            // Pointer to STARTUPINFO structure
             &pi )           // Pointer to PROCESS_INFORMATION structure
-    ) {
-        printf( "CreateProcess failed (%d).\n", GetLastError() );
-        // return;
-    }
-    }
+        ) {
+            printf("Failed to create process with error=%d", GetLastError() );
+            free(command);
+            exit(EXIT_FAILURE);
+        }
+    
+        free(command);
 
+        WaitForSingleObject( pi.hProcess, INFINITE );
+
+        // Close process and thread handles. 
+        CloseHandle( pi.hProcess );
+        CloseHandle( pi.hThread );
+    }
+    
     exit(EXIT_SUCCESS);
 }
