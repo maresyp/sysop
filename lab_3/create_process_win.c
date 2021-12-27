@@ -22,16 +22,16 @@ int main(int argc, char * argv[], char * envp[]) {
         si.cb = sizeof(si);
         ZeroMemory( &pi, sizeof(pi) );
 
-        char * command = malloc(sizeof(argv[0]) + 1 + sizeof(argv[i]) + 1);
+        char * command = malloc(strlen(argv[0]) + 1 + strlen(argv[i]) + 1);
         if (command == NULL) {
             printf("Bad alloc");
             exit(EXIT_FAILURE);
         }
         
         command[0] = '\0';
-        strncat(command, argv[0], sizeof(argv[0]));
+        strncat(command, argv[0], strlen(argv[0]));
         strncat(command, " ", 1);
-        strncat(command, argv[i], sizeof(argv[i]));
+        strncat(command, argv[i], strlen(argv[i]));
 
         if( !CreateProcess( 
             NULL,           // No module name (use command line)
