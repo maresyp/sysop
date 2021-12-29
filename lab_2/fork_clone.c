@@ -24,23 +24,38 @@ int main(int argc, char *argv[], char *envp[]) {
     } else {
         if (strcmp(argv[1], "c") == 0) {
             // use clone
-            // TODO : alloc stack for every process
             const int STACK_SIZE = 1024 * 1024;
-            void *stack = malloc(STACK_SIZE);
-            if (stack == NULL) {
+            void **stack_array = malloc(sizeof(void *) * (argc - 1));
+            if (stack_array == NULL) {
                 printf("bad alloc");
-                exit(-1);
+                exit(EXIT_FAILURE);
             }
-            for (int i = 1; i < argc; ++i) {
-                // CLONE_VFORK will wait here for child_process to finish its job
-                pid_t pid = clone(duplicate_me, stack + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
-                if (pid == -1) {
-                    printf("Failed to clone");
+            for (int i = 0; i < argc - 1; ++i) {
+                stack_array[i] = malloc(STACK_SIZE);
+                if (stack_array[i] == NULL) {
+                    for (int j = i - 1; j >= 0; j--) {
+                        free(stack_array[j]);
+                    }
+                    free(stack_array);
+                    printf("bad alloc");
                     exit(EXIT_FAILURE);
                 }
-                printf("New process using clone created with pid = %d\n", pid);
             }
-            free(stack);
+
+            for (int i = 1; i < argc; ++i) {
+                // CLONE_VFORK will wait here for child_process to finish its job
+                pid_t pid = clone(duplicate_me, stack_array[i - 1] + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
+                if (pid == -1) {
+                    printf("Failed to clone");
+                } else {
+                    printf("New process using clone created with pid = %d\n", pid);
+                }
+            }
+
+            for (int i = 0; i < argc - 1; ++i) {
+                free(stack_array[i]);
+            }
+            free(stack_array);
         } else {
             // use fork
             for (int i = 1; i < argc; ++i) {
