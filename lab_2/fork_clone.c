@@ -23,6 +23,12 @@ int main(int argc, char *argv[], char *envp[]) {
         printf("Program wykonany bez argumentow");
     } else {
         if (strcmp(argv[1], "c") == 0) {
+
+            if (argc == 2) {
+                printf("Program wykonany bez argumentow");
+                exit(EXIT_SUCCESS);
+            }
+
             // use clone
             const int STACK_SIZE = 1024 * 1024;
             void **stack_array = malloc(sizeof(void *) * (argc - 1));
@@ -42,9 +48,9 @@ int main(int argc, char *argv[], char *envp[]) {
                 }
             }
 
-            for (int i = 1; i < argc; ++i) {
+            for (int i = 2; i < argc; ++i) {
                 // CLONE_VFORK will wait here for child_process to finish its job
-                pid_t pid = clone(duplicate_me, stack_array[i - 1] + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
+                pid_t pid = clone(duplicate_me, stack_array[i - 2] + STACK_SIZE, CLONE_VM | CLONE_VFORK, argv[i]);
                 if (pid == -1) {
                     printf("Failed to clone");
                 } else {
