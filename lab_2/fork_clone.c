@@ -63,7 +63,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 if (pid == -1) { printf("Forking failed"); }
                 if (pid == 0) {
                     // do child stuff
-                    printf("%s process pid %d\n", argv[i], pid);
+                    printf("arg=%s process pid=%d\n", argv[i], getpid());
                     exit(0);
                 }
             }
