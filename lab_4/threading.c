@@ -19,7 +19,7 @@ struct thread_info {
     uint8_t queue_slot;
 };
 
-void *run(void *arg) {
+void *thread_run(void *arg) {
     // critical section with mutex
 
     /*
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[2], "dec") == 0) {
         close_order = DEC;
     } else {
-        printf("Prosze wybrac inc / dec. %s nie jest poprawne", argv[2]);
+        printf("Prosze wybrac inc / dec. %s nie jest poprawne\n", argv[2]);
         exit(EXIT_FAILURE);
     }
 
@@ -56,7 +56,17 @@ int main(int argc, char *argv[]) {
         printf("Bad alloc");
         exit(EXIT_FAILURE);
     }
-    
+
+    int ret;
+    for (int i = 0; i < threads_amount; i++) {
+        t_info[i].queue_slot = (uint8_t) i;
+        ret = pthread_create(&t_info[i].thread_id, NULL, thread_run, &t_info[i]);
+        if (ret != 0) {
+            printf("Nie udalo sie stworzyc watku nr %d\n", i);
+            free(t_info);
+            exit(EXIT_FAILURE);
+        }
+    }
     free(t_info);
     return 0;
 }
