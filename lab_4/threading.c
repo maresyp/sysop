@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #define MIN_THREADS (int)2
 #define MAX_THREADS (int)100
@@ -13,7 +14,12 @@ enum direction {
 };
 enum direction close_order;
 
-void run() {
+struct thread_info {
+    pthread_t thread_id;
+    uint8_t queue_slot;
+};
+
+void *run(void *arg) {
     // critical section with mutex
 
     /*
@@ -21,6 +27,7 @@ void run() {
      *     // thread.join in dec or inc order
      * }
      */
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -44,6 +51,13 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    struct thread_info *t_info = malloc(threads_amount * sizeof(*t_info));
+    if (t_info == NULL) {
+        printf("Bad alloc");
+        exit(EXIT_FAILURE);
+    }
+    
+    free(t_info);
     return 0;
 }
 
