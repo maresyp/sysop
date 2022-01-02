@@ -7,7 +7,6 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <assert.h>
-#include <unistd.h>
 
 #define MIN_THREADS (int)2
 #define MAX_THREADS (int)100
@@ -35,13 +34,13 @@ void *thread_run(void *arg) {
     pthread_mutex_unlock(&mutex);
 
     while (t_info->queue_slot != *t_info->next_to_close) {
-        printf("Thread %d waiting in spinlock\n", t_info->queue_slot);
+        //printf("Thread %d waiting in spinlock\n", t_info->queue_slot);
     }
+    printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);
     if (close_order == INC)
         *t_info->next_to_close = *t_info->next_to_close + 1;
     else
         *t_info->next_to_close = *t_info->next_to_close - 1;
-    printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);
     return NULL;
 }
 
