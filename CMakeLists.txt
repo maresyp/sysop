@@ -4,4 +4,4 @@ project(sysop)
 set(CMAKE_CXX_STANDARD 11)
 
 add_compile_options(-Werror -Wall -pedantic)
-add_executable(sysop lab_4/threading.c)
+add_executable(sysop lab_4/threading.c lab_4/threading_win.c)
