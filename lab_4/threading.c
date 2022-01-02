@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <assert.h>
+#include <unistd.h>
 
 #define MIN_THREADS (int)2
 #define MAX_THREADS (int)100
@@ -18,6 +19,7 @@ enum direction {
 struct thread_info {
     pthread_t thread_id;
     uint8_t queue_slot;
+    _Atomic int next_to_close;
 };
 
 // Globals
@@ -26,18 +28,18 @@ pthread_mutex_t mutex;
 int increment_me = 0;
 
 void *thread_run(void *arg) {
-    struct thread_info const *t_info = arg;
+    struct thread_info *t_info = arg;
 
     pthread_mutex_lock(&mutex);
     increment_me++;
     pthread_mutex_unlock(&mutex);
-    /*
-     * for(...) {
-     *     // thread.join in dec or inc order
-     * }
-     */
+
+    while (t_info->queue_slot != t_info->next_to_close) {
+        //printf("Thread %d waiting in spinlock\n", t_info->queue_slot);
+    }
+
     printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);
-    return NULL;
+    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -75,10 +77,11 @@ int main(int argc, char *argv[]) {
     int ret;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     for (int i = 0; i < threads_amount; i++) {
         t_info[i].queue_slot = (uint8_t) i;
+        t_info[i].next_to_close = 0;
         ret = pthread_create(&t_info[i].thread_id, &attr, thread_run, &t_info[i]);
         printf("Uruchomiono watek nr %d\n", i);
         if (ret != 0) {
@@ -89,9 +92,12 @@ int main(int argc, char *argv[]) {
         }
     }
     printf("Zakonczono tworzenie watkow\n");
+    for (int i = 0; i < threads_amount; ++i) {
+        pthread_join(t_info[i].thread_id, NULL);
+    }
     printf("increment_me = %d\n", increment_me);
     assert(increment_me == threads_amount);
-    
+
     pthread_attr_destroy(&attr);
     free(t_info);
     return 0;
