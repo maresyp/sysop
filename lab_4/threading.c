@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <assert.h>
+#include <unistd.h>
 
 #define MIN_THREADS (int)3
 #define MAX_THREADS (int)100
@@ -28,6 +29,9 @@ int increment_me = 0;
 
 void *thread_run(void *arg) {
     struct thread_info *t_info = arg;
+
+    // wait for random period of time
+    sleep(rand() % 10);
 
     pthread_mutex_lock(&mutex);
     increment_me++;
@@ -75,6 +79,8 @@ int main(int argc, char *argv[]) {
         printf("Bad alloc");
         exit(EXIT_FAILURE);
     }
+
+    srand(time(NULL));
 
     int ret;
     _Atomic int ntc = (close_order == INC) ? 0 : threads_amount - 1;
