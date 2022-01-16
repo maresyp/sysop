@@ -8,7 +8,7 @@
 #include <stdatomic.h>
 #include <assert.h>
 
-#define MIN_THREADS (int)2
+#define MIN_THREADS (int)3
 #define MAX_THREADS (int)100
 
 enum direction {
