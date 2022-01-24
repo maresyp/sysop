@@ -5,13 +5,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <unistd.h>
+#include <assert.h>
+#include <time.h>
 
 #define MIN_THREADS (int)3
 #define MAX_THREADS (int)100
 
 struct thread_info {
-
-    _Atomic int next_to_close;
+    int queue_slot;
+    _Atomic int *next_to_close;
 };
 enum direction {
     INC = 0, DEC = 1
@@ -20,8 +23,25 @@ enum direction {
 // Globals
 enum direction close_order;
 int increment_me = 0;
+HANDLE mutex;
 
 DWORD WINAPI thread_run(LPVOID lpParam) {
+    struct thread_info * t_info = lpParam;
+
+    sleep(rand() % 10);
+
+    WaitForSingleObject(mutex, INFINITE);
+    increment_me++;
+    ReleaseMutex(mutex);
+
+    while(t_info->queue_slot != *t_info->next_to_close) {
+        // printf("spinlock");
+    }
+    printf("Watek nr %d zakonczyl prace.\n", t_info->queue_slot);
+    if (close_order == INC)
+        *t_info->next_to_close = *t_info->next_to_close + 1;
+    else
+        *t_info->next_to_close = *t_info->next_to_close - 1;
     return 0;
 }
 int main(int argc, char *argv[]) {
@@ -45,32 +65,76 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    DWORD *thread_ids = malloc(sizeof(*thread_ids) * threads_amount);
+    mutex = CreateMutex(
+        NULL,
+        FALSE,
+        "mutex"
+    );
+    if (mutex == NULL) { 
+        printf("Failed creating mutex : %d\n", GetLastError()); 
+        exit(EXIT_FAILURE); 
+    } 
+
     HANDLE *thread_handles = malloc(sizeof(*thread_handles) * threads_amount);
+    if (thread_handles == NULL) {
+        CloseHandle(mutex);
+        exit(EXIT_FAILURE);
+    }
+    struct thread_info *t_info = malloc(sizeof(*t_info) * threads_amount);
+    if (t_info == NULL) {
+        CloseHandle(mutex);
+        free(thread_handles);
+        exit(EXIT_FAILURE);
+    }
+    srand(time(NULL));
+
+    _Atomic int ntc = (close_order == INC) ? 0 : threads_amount - 1;
 
     for (int i = 0; i < threads_amount; ++i) {
         // create threads
+        t_info[i].queue_slot = i;
+        t_info[i].next_to_close = &ntc;
         thread_handles[i] = CreateThread(
                 NULL,
-                0,
+                sizeof(struct thread_info),
                 thread_run,
+                &t_info[i],
                 0,
-                0,
-                &thread_ids[i]);
+                NULL);
 
         if (thread_handles[i] == NULL) {
-            // TODO: handle error
+            printf("Failed to create thread with error=%d", GetLastError());
+            for (int j = i - 1; j >= 0; j--) {
+                CloseHandle(thread_handles[j]);
+            }
+            free(t_info);
+            free(thread_handles);
+            exit(EXIT_FAILURE);
         }
     }
 
     printf("Zakonczono tworzenie watkow\n");
-    WaitForMultipleObjects(threads_amount, thread_handles, TRUE, INFINITE);
+    
+    //WaitForMultipleObjects(threads_amount, thread_handles, TRUE, INFINITE);
 
-    for (int i = 0; i < threads_amount; ++i) {
-        CloseHandle(thread_handles[i]);
+    if (close_order == INC) {
+        for(int i = 0; i< threads_amount; i++) {
+            WaitForSingleObject(thread_handles[i], INFINITE);
+            CloseHandle(thread_handles[i]);
+        }
+    } else {
+        for(int i = threads_amount; i >= 0; i--) {
+            WaitForSingleObject(thread_handles[i], INFINITE);
+            CloseHandle(thread_handles[i]);
+        }
     }
-    free(thread_ids);
+
+
+    free(t_info);
     free(thread_handles);
+
+    printf("inc_me = %d", increment_me);
+    assert(increment_me == threads_amount);
 
     return 0;
 }
