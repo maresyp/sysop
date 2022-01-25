@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Zakonczono tworzenie watkow\n");
-    
-    //WaitForMultipleObjects(threads_amount, thread_handles, TRUE, INFINITE);
+
+    // WaitForMultipleObjects(threads_amount, thread_handles, TRUE, INFINITE);
 
     if (close_order == INC) {
         for(int i = 0; i< threads_amount; i++) {
