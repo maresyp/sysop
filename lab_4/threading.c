@@ -38,6 +38,7 @@ void *thread_run(void *arg) {
     pthread_mutex_unlock(&mutex);
 
     while (t_info->queue_slot != *t_info->next_to_close) {
+        sleep(0);
         //printf("Thread %d waiting in spinlock\n", t_info->queue_slot);
     }
     printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);

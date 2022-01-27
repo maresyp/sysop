@@ -36,6 +36,7 @@ DWORD WINAPI thread_run(LPVOID lpParam) {
 
     while(t_info->queue_slot != *t_info->next_to_close) {
         // printf("spinlock");
+        sleep(0);
     }
     printf("Watek nr %d zakonczyl prace.\n", t_info->queue_slot);
     if (close_order == INC)
