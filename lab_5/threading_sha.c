@@ -35,7 +35,7 @@ void *thread_run(void *arg) {
 
     pthread_mutex_lock(&mutex);
 
-    if (amount_of_confirmations < 3) {
+    if (amount_of_confirmations < 2) {
         // store calculated value to global variable if not set already
         if (amount_of_confirmations == -1) {
             memcpy(result, buffer, SHA256_BLOCK_SIZE);
@@ -44,7 +44,8 @@ void *thread_run(void *arg) {
             if (memcmp(result, buffer, SHA256_BLOCK_SIZE) == 0) {
                 amount_of_confirmations++;
 
-                if (amount_of_confirmations == 3) {
+                if (amount_of_confirmations == 2) {
+                    printf("Wynik: ");
                     for (int i = 0; i < SHA256_BLOCK_SIZE; ++i) {
                         printf("%d", result[i]);
                     }
