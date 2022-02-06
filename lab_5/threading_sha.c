@@ -6,6 +6,7 @@
 #include <string.h>
 #include <pthread.h>
 #include "sha256.h"
+#include <signal.h>
 
 #define MIN_THREADS (int)3
 #define MAX_THREADS (int)100
@@ -19,13 +20,10 @@ struct thread_info {
 pthread_mutex_t mutex;
 _Atomic int amount_of_confirmations = -1;
 BYTE result[SHA256_BLOCK_SIZE];
+int signum = 0;
 
 void *thread_run(void *arg) {
     struct thread_info const *t_info = arg;
-
-    if (amount_of_confirmations >= 3) {
-        return NULL;
-    }
 
     // calculate sha256
     BYTE index[] = {"236439"};
@@ -38,17 +36,26 @@ void *thread_run(void *arg) {
 
     pthread_mutex_lock(&mutex);
 
-    // store calculated value to global variable if not set already
-    if (amount_of_confirmations == -1) {
-        memcpy(result, buffer, SHA256_BLOCK_SIZE);
-        amount_of_confirmations++;
-    } else {
-        if (memcmp(result, buffer, SHA256_BLOCK_SIZE) == 0) {
+    if (amount_of_confirmations < 3) {
+        // store calculated value to global variable if not set already
+        if (amount_of_confirmations == -1) {
+            memcpy(result, buffer, SHA256_BLOCK_SIZE);
             amount_of_confirmations++;
+        } else {
+            if (memcmp(result, buffer, SHA256_BLOCK_SIZE) == 0) {
+                amount_of_confirmations++;
+
+                if (amount_of_confirmations == 3) {
+                    for (int i = 0; i < SHA256_BLOCK_SIZE; ++i) {
+                        printf("%d", result[i]);
+                    }
+                    printf("\n");
+                }
+            }
         }
+        printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);
     }
 
-    printf("Watek z queue=%d zakonczyl prace\n", t_info->queue_slot);
     pthread_mutex_unlock(&mutex);
 
     return NULL;
@@ -77,8 +84,6 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    srand(time(NULL));
-
     int ret;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -87,7 +92,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < threads_amount; i++) {
         t_info[i].queue_slot = (uint8_t) i;
         ret = pthread_create(&t_info[i].thread_id, &attr, thread_run, &t_info[i]);
-        printf("Uruchomiono watek nr %d\n", i);
         if (ret != 0) {
             printf("Nie udalo sie stworzyc watku nr %d\n", i);
             free(t_info);
@@ -95,14 +99,15 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
-    printf("Zakonczono tworzenie watkow\n");
+
+    pthread_attr_destroy(&attr);
+    printf("Zakonczono tworzenie %ld watkow\n", threads_amount);
 
     for (int i = 0; i < threads_amount; ++i) {
         pthread_join(t_info[i].thread_id, NULL);
     }
-    pthread_attr_destroy(&attr);
-    free(t_info);
 
+    free(t_info);
     printf("confirmations: %d", amount_of_confirmations);
     return 0;
 }
