@@ -20,7 +20,6 @@ struct thread_info {
 pthread_mutex_t mutex;
 _Atomic int amount_of_confirmations = -1;
 BYTE result[SHA256_BLOCK_SIZE];
-int signum = 0;
 
 void *thread_run(void *arg) {
     struct thread_info const *t_info = arg;
