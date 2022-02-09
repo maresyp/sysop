@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "sha256.h"
 
@@ -24,13 +26,21 @@ typedef struct worker_info {
 /* GLOBALS */
 
 pthread_mutex_t mutex;
-int amount_of_confirmations = -1;
+_Atomic int amount_of_confirmations = -1;
+BYTE result[SHA256_BLOCK_SIZE];
 
 /* GLOBALS */
 
 void *calculate_sha256(void *arg) {
 
     thread_info const *t_info = arg;
+
+    sleep(rand() % 15);
+
+    /* No need to calculate, value was already confirmed */
+    if (amount_of_confirmations >= 2) {
+        return NULL;
+    }
 
     // calculate sha256
     BYTE index[] = {"236439"};
@@ -41,7 +51,17 @@ void *calculate_sha256(void *arg) {
     sha256_update(&ctx, index, 6);
     sha256_final(&ctx, buffer);
 
-    printf("Thread with queue = %d finished its job", t_info->queue_slot);
+
+    if (amount_of_confirmations == -1) {
+        /* This thread was first tp finish */
+        memcpy(result, buffer, SHA256_BLOCK_SIZE);
+        amount_of_confirmations++;
+    } else if (memcmp(result, buffer, SHA256_BLOCK_SIZE) == 0) {
+        /* if calculated value is equal to previous */
+        amount_of_confirmations++;
+    }
+
+    printf("Thread with queue = %d finished its job\n", t_info->queue_slot);
     return NULL;
 }
 
@@ -55,6 +75,9 @@ void *create_workers(void *arg) {
     /* Wait here for mutex from main before creating new threads */
     pthread_mutex_lock(&mutex);
     pthread_mutex_unlock(&mutex);
+
+    /* random stuff */
+    srand(time(NULL));
 
     /* Create threads */
     for (int i = 0; i < w_info->threads_count; i++) {
@@ -115,9 +138,18 @@ int main(int argc, char *argv[]) {
     pthread_mutex_unlock(&mutex);
 
     /* Wait here for amount_of_confirmations to reach desired value */
-
-
+    /* TODO : change from spinlock to something better */
+    while (amount_of_confirmations <= 1) {
+        /* do nothing */
+        sleep(0);
+    }
+    pthread_cancel(create_threads_id);
+    for (int i = 0; i < threads_amount; ++i) {
+        pthread_cancel(t_info[i].thread_id);
+    }
     free(t_info);
+    printf("Amount of confirmations = %d\n", amount_of_confirmations);
+
     return 0;
 }
 
